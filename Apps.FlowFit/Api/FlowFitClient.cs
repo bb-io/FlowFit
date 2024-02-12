@@ -1,5 +1,6 @@
 ﻿using Apps.FlowFit.Constants;
 using Apps.FlowFit.Models.Dtos;
+using Apps.FlowFit.Models.Responses.Error;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
@@ -23,8 +24,23 @@ public class FlowFitClient : BlackBirdRestClient
 
     protected override Exception ConfigureErrorException(RestResponse response) 
     {
-        var error = JsonConvert.DeserializeObject<ProblemDetails>(response.Content);
-        return new($"{error.Title}: {error.Detail}");
+        var error = JsonConvert.DeserializeObject<ErrorResponse>(response.Content!);
+        string errorMessage;
+
+        if (error != null && (error.Title != null || error.Detail != null))
+        {
+            errorMessage = (error.Title ?? error.Type) ?? "Failed to execute the action";
+
+            if (error.Detail != null)
+                errorMessage += $": {error.Detail}";
+        }
+        else
+        {
+            var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageResponse>(response.Content!);
+            errorMessage = errorMessageDto!.Message;
+        }
+
+        return new(errorMessage);
     }
 
     private string GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
@@ -37,7 +53,7 @@ public class FlowFitClient : BlackBirdRestClient
             {
                 login,
                 password,
-                culture = "EN",
+                culture = "en",
                 timeZone = TimeZoneInfo.Local.Id
             });
         var response = new RestClient(Urls.Api).Execute(request);
@@ -45,7 +61,7 @@ public class FlowFitClient : BlackBirdRestClient
         if (!response.IsSuccessful)
             throw new("Failed to authorize. Please check the validity of your login and password.");
         
-        var sessionToken = JsonConvert.DeserializeObject<SessionTokenDTO>(response.Content!, JsonSettings);
+        var sessionToken = JsonConvert.DeserializeObject<SessionTokenDto>(response.Content!, JsonSettings);
         return sessionToken!.TokenValue;
     }
 }

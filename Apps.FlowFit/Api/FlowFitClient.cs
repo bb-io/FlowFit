@@ -1,6 +1,6 @@
 ﻿using Apps.FlowFit.Constants;
 using Apps.FlowFit.Models.Dtos;
-using Apps.FlowFit.Models.Responses.Error;
+using Apps.FlowFit.Models.Dtos.Error;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
@@ -24,7 +24,7 @@ public class FlowFitClient : BlackBirdRestClient
 
     protected override Exception ConfigureErrorException(RestResponse response) 
     {
-        var error = JsonConvert.DeserializeObject<ErrorResponse>(response.Content!);
+        var error = JsonConvert.DeserializeObject<ErrorDto>(response.Content!);
         string errorMessage;
 
         if (error != null && (error.Title != null || error.Detail != null))
@@ -36,7 +36,7 @@ public class FlowFitClient : BlackBirdRestClient
         }
         else
         {
-            var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageResponse>(response.Content!);
+            var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageDto>(response.Content!);
             errorMessage = errorMessageDto!.Message;
         }
 

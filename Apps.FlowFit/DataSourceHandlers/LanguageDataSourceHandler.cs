@@ -1,5 +1,5 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Responses.Language;
+using Apps.FlowFit.Models.Dtos.Language;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -15,7 +15,7 @@ public class LanguageDataSourceHandler : FlowFitInvocable, IAsyncDataSourceHandl
         CancellationToken cancellationToken)
     {
         var request = new FlowFitRequest("/api/v1/Languages");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<LanguageSimpleResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<LanguageSimpleDto>>(request);
         var languages = response
             .Where(language => context.SearchString == null 
                                || language.Description.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

@@ -1,6 +1,6 @@
 ﻿using Apps.FlowFit.Api;
+using Apps.FlowFit.Models.Dtos;
 using Apps.FlowFit.Models.Identifiers;
-using Apps.FlowFit.Models.Responses.Client;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -24,7 +24,7 @@ public class ClientDepartmentDataSourceHandler : FlowFitInvocable, IAsyncDataSou
             throw new Exception("Please specify client ID first.");
         
         var request = new FlowFitRequest($"/api/v1/ClientDepartments?ClientId={_clientIdentifier.ClientId}");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ClientDepartmentResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<EntitySimpleDto>>(request);
         var departments = response
             .Where(department => context.SearchString == null
                                  || department.Description.Contains(context.SearchString,

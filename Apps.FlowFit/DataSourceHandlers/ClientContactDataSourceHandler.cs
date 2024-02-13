@@ -1,6 +1,6 @@
 ﻿using Apps.FlowFit.Api;
+using Apps.FlowFit.Models.Dtos.Client;
 using Apps.FlowFit.Models.Identifiers;
-using Apps.FlowFit.Models.Responses.Client;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -24,7 +24,7 @@ public class ClientContactDataSourceHandler : FlowFitInvocable, IAsyncDataSource
             throw new Exception("Please specify client ID first.");
         
         var request = new FlowFitRequest($"/api/v1/ClientContacts?ClientId={_clientIdentifier.ClientId}");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ClientContactSimpleResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ClientContactSimpleDto>>(request);
         var contacts = response
             .Where(contact => context.SearchString == null
                               || contact.FirstName.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase)

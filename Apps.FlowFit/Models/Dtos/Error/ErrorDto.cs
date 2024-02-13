@@ -1,6 +1,6 @@
-﻿namespace Apps.FlowFit.Models.Responses.Error;
+﻿namespace Apps.FlowFit.Models.Dtos.Error;
 
-public class ErrorResponse 
+public class ErrorDto 
 {
     public string? Type { get; set; }
     public string? Title { get; set; }

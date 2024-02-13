@@ -1,10 +1,10 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Client;
+namespace Apps.FlowFit.Models.Dtos.Client;
 
-public class ClientSimpleResponse 
+public class ClientSimpleDto
 {
-    [Display("Client ID")]
+    [Display("ID")]
     public string Id { get; set; }
 
     public string Name { get; set; } 

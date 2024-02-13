@@ -1,5 +1,5 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Responses.Resource;
+using Apps.FlowFit.Models.Dtos.Resource;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -15,7 +15,7 @@ public class ResourceDataSourceHandler : FlowFitInvocable, IAsyncDataSourceHandl
         CancellationToken cancellationToken)
     {
         var request = new FlowFitRequest("/api/v1/Resources");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ResourceSimpleResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ResourceSimpleDto>>(request);
         var resources = response
             .Where(resource => context.SearchString == null
                                || resource.FirstName.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase)

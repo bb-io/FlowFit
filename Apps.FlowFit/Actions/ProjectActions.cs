@@ -1,9 +1,9 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Dtos;
+using Apps.FlowFit.Extensions;
+using Apps.FlowFit.Models.Dtos.Field;
 using Apps.FlowFit.Models.Dtos.Project;
 using Apps.FlowFit.Models.Identifiers;
 using Apps.FlowFit.Models.Requests.Project;
-using Apps.FlowFit.Models.Responses;
 using Apps.FlowFit.Models.Responses.Project;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -31,8 +31,8 @@ public class ProjectActions : FlowFitInvocable
     public async Task<ProjectResponse> GetProject([ActionParameter] ProjectIdentifier projectIdentifier)
     {
         var request = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}");
-        var response = await Client.ExecuteWithErrorHandling<ProjectResponse>(request);
-        return response;
+        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
+        return new(response);
     }
 
     #endregion
@@ -44,11 +44,99 @@ public class ProjectActions : FlowFitInvocable
         [ActionParameter] CreateProjectRequest input)
     {
         var request = new FlowFitRequest("/api/v1/Projects", Method.Post)
-            .WithJsonBody(new ProjectDto(input, clientIdentifier, _fileManagementClient));
-        var response = await Client.ExecuteWithErrorHandling<ProjectResponse>(request);
-        return response;
+            .WithJsonBody(new
+            {
+                ClientId = clientIdentifier.ClientId.ConvertToInt32(),
+                WorkTypeId = input.WorkTypeId.ConvertToInt32(),
+                Title = input.Title,
+                ProjectRequesterId = input.ProjectRequesterId.ConvertToInt32(),
+                TemplateId = input.TemplateId.ConvertToInt32(),
+                ClientDepartmentId = input.ClientDepartmentId.ConvertToInt32(),
+                SourceLanguageId = input.SourceLanguageId.ConvertToInt32(),
+                ManagerId = input.ManagerId.ConvertToInt32(),
+                RequestedDeadline = input.RequestedDeadline,
+                Detail = input.Details,
+                TargetLanguages = input.TargetLanguageIds?.Select(int.Parse),
+                SourceFiles = input.SourceFiles?.Select(async file =>
+                {
+                    var fileStream = await _fileManagementClient.DownloadAsync(file);
+                    return new
+                    {
+                        FileName = file.Name,
+                        FileContent = await fileStream.ConvertToBase64String()
+                    };
+                })
+            });
+        
+        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
+        return new(response);
     }
 
+    #endregion
+    
+    #region Patch
+    
+    [Action("Update project", Description = "Update a project, specifying only the fields that require updating.")]
+    public async Task<ProjectResponse> UpdateProject([ActionParameter] ProjectIdentifier projectIdentifier,
+        [ActionParameter] UpdateProjectRequest input)
+    {
+        var project = await GetProject(projectIdentifier);
+        var request = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}", Method.Put)
+            .WithJsonBody(new
+            {
+                ClientId = project.Client.Id.ConvertToInt32(),
+                WorkTypeId = (input.WorkTypeId ?? project.WorkType.Id).ConvertToInt32(),
+                Title = input.Title ?? project.Title,
+                ProjectRequesterId = project.Requester.Id.ConvertToInt32(),
+                TemplateId = (input.TemplateId ?? project.Template.Id).ConvertToInt32(),
+                ClientDepartmentId = project.ClientDepartment?.Id.ConvertToInt32(),
+                SourceLanguageId = (input.SourceLanguageId ?? project.SourceLanguage?.Id).ConvertToInt32(),
+                ManagerId = (input.ManagerId ?? project.Manager?.Id).ConvertToInt32(),
+                Detail = input.Details ?? project.Details,
+                TargetLanguages = (input.TargetLanguageIds ?? project.TargetLanguages?.Select(language => language.Id))
+                    ?.Select(int.Parse),
+                PrevProjectNumber = project.PrevProjectNumber,
+                DomainId = project.Domain?.Id.ConvertToInt32(),
+                PriorityId = project.Priority?.Id.ConvertToInt32(),
+                ProjectContacts = project.ProjectContacts,
+                StatusId = (input.StatusId ?? project.Status.Id).ConvertToInt32(),
+                StartDate = project.DatesInformation.StartDate,
+                DelayReasonId = (input.DelayReasonId ?? project.DatesInformation.DelayReason?.Id).ConvertToInt32(),
+                RequestedDeadline = input.RequestedDeadline ?? project.DatesInformation.RequestedDeadline,
+                NegotiatedDeadline = input.NegotiatedDeadline ?? project.DatesInformation.NegotiatedDeadline,
+                CompletedDate = input.CompletedDate ?? project.DatesInformation.CompletedDate,
+                DeliveryDate = input.DeliveryDate ?? project.DatesInformation.DeliveryDate,
+                DateArchival = input.DateArchival ?? project.DatesInformation.DateArchival,
+                CancellationDate = project.DatesInformation.CancellationDate,
+                NegotiableDeadlineId = (input.NegotiableDeadlineId ?? project.DatesInformation.NegotiableDeadline?.Id)
+                    .ConvertToInt32()
+            });
+        
+        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
+
+        if (input.IsUrgent == true || project.IsUrgent // need to update separately since put call sets boolean fields to false
+            || input.CloseOnDelivery == true || project.CloseOnDelivery
+            || input.IsNegotiableDeadline == true || project.DatesInformation.IsNegotiableDeadline
+            || input.AutomaticArchiving == true || project.AutomaticArchiving)
+        {
+            var fieldsToUpdate = new FieldValueDto[]
+            {
+                new(nameof(input.IsUrgent), (input.IsUrgent ?? project.IsUrgent).ToString()),
+                new(nameof(input.CloseOnDelivery), (input.CloseOnDelivery ?? project.CloseOnDelivery).ToString()),
+                new(nameof(input.IsNegotiableDeadline),
+                    (input.IsNegotiableDeadline ?? project.DatesInformation.IsNegotiableDeadline).ToString()),
+                new(nameof(input.AutomaticArchiving),
+                    (input.AutomaticArchiving ?? project.AutomaticArchiving).ToString())
+            };
+
+            var updateFieldsRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}/partialupdate",
+                Method.Patch).WithJsonBody(fieldsToUpdate);
+            response = await Client.ExecuteWithErrorHandling<ProjectDto>(updateFieldsRequest);
+        }
+        
+        return new(response);
+    }
+    
     #endregion
 
     #region Delete
@@ -60,93 +148,5 @@ public class ProjectActions : FlowFitInvocable
         await Client.ExecuteWithErrorHandling(request);
     }
 
-    #endregion
-    
-    #region Generated
-    
-    [Action("Get all projects", Description = "Returns a list of all the projects that have been created.")]
-    public async Task GetProjects()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects", Method.Get);
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ProjectListResult>>(request);
-    }
-
-    [Action("Get projects by filters", Description = "Returns a list of all the projects with the filters.")]
-    public async Task GetByFilters()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/GetByFilters", Method.Get);
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ProjectResponse>>(request);
-    }
-
-    [Action("Get the active projects", Description = "Returns a list of all the active projects. Filters can be used to refine the search.")]
-    public async Task GetActiveProjects()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{filters}", Method.Get);
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ProjectActiveListResult>>(request);
-    }
-
-    [Action("Update a project", Description = "Updates an existing project and returns the project result.")]
-    public async Task PutProject()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{id}", Method.Put);
-        var response = await Client.ExecuteWithErrorHandling<ProjectResponse>(request);
-    }
-
-    [Action("Get project status", Description = "Returns the status of the project.")]
-    public async Task GetProjectStatusByProjectId()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/status", Method.Get);
-        var response = await Client.ExecuteWithErrorHandling<ProjectStatusDTO>(request);
-    }
-
-    [Action("Update the project status", Description = "Update the status of the given project, and return the new status.")]
-    public async Task PutProjectStatus()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/status", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling<ProjectStatusDTO>(request);
-    }
-
-    [Action("Update the project manager", Description = "Assign a project to a project manager.")]
-    public async Task AssignProjectManager()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/assignprojectmanager", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling(request);
-    }
-
-    [Action("Change a project deadline", Description = "Change a given project's deadline")]
-    public async Task ChangeProjectDeadline()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/changeprojectdeadline", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling(request);
-    }
-
-    [Action("Update the project languages", Description = "Update the source and/or target languages of the given project")]
-    public async Task UpdateProjectLangagues()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/{updateCatTools}/updateprojectlanguages", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling(request);
-    }
-
-    [Action("Update project partially by field", Description = "Updates specific fields in a project based on the given list of fields. Available fields are defined in the ProjectPutDTO, from the main Projects PUT operation.")]
-    public async Task PartialUpdate()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/partialupdate", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling(request);
-    }
-
-    [Action("Reopen a project", Description = "Reopen a project")]
-    public async Task ReopenProject()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/{projectId}/reopen", Method.Patch);
-        var response = await Client.ExecuteWithErrorHandling(request);
-    }
-
-    [Action("Search a project by filters", Description = "Returns a list of all the projects with the filters.")]
-    public async Task Search()
-    {
-        var request = new FlowFitRequest("/api/v1/Projects/Search", Method.Get);
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ProjectSearchListResult>>(request);
-    }
-    
     #endregion
 }

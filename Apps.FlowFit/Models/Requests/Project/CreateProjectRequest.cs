@@ -21,9 +21,6 @@ public class CreateProjectRequest
     [DataSource(typeof(ClientContactDataSourceHandler))]
     public string ProjectRequesterId { get; set; }
     
-    [Display("Is urgent")]
-    public bool? IsUrgent { get; set; }
-    
     [Display("Source language ID")]
     [DataSource(typeof(LanguageDataSourceHandler))]
     public string? SourceLanguageId { get; set; }
@@ -43,11 +40,7 @@ public class CreateProjectRequest
     [Display("Requested deadline")]
     public DateTime? RequestedDeadline { get; set; }
     
-    [Display("Is negotiable deadline")]
-    public bool? IsNegotiableDeadline { get; set; }
-    
-    [Display("Details")]
-    public string? Detail { get; set; }
+    public string? Details { get; set; }
     
     [Display("Source files")]
     public IEnumerable<FileReference>? SourceFiles { get; set; }

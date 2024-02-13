@@ -1,8 +1,8 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Client;
+namespace Apps.FlowFit.Models.Dtos.Client;
 
-public class ClientResponse : ClientSimpleResponse
+public class ClientDto : ClientSimpleDto
 {
     public string? Requirements { get; set; }
     

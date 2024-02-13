@@ -1,5 +1,5 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Responses.Project;
+using Apps.FlowFit.Models.Dtos;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -15,7 +15,7 @@ public class ProjectTemplateDataSourceHandler : FlowFitInvocable, IAsyncDataSour
         CancellationToken cancellationToken)
     {
         var request = new FlowFitRequest("/api/v1/ProjectTemplates");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ProjectTemplateSimpleResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<EntitySimpleDto>>(request);
         var templates = response
             .Where(template => context.SearchString == null 
                                || template.Description.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

@@ -1,8 +1,8 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Documents;
+namespace Apps.FlowFit.Models.Dtos.Document;
 
-public class DocumentSimpleResult 
+public class DocumentSimpleDto
 {
     [Display("Document ID")]
     public string Id { get; set; }

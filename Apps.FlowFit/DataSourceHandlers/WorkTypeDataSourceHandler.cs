@@ -1,5 +1,5 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Responses.WorkType;
+using Apps.FlowFit.Models.Dtos;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -15,7 +15,7 @@ public class WorkTypeDataSourceHandler : FlowFitInvocable, IAsyncDataSourceHandl
         CancellationToken cancellationToken)
     {
         var request = new FlowFitRequest("/api/v1/WorkTypes");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<WorkTypeSimpleResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<EntitySimpleDto>>(request);
         var workTypes = response
             .Where(workType => context.SearchString == null 
                                || workType.Description.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

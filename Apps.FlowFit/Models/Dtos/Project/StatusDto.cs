@@ -1,14 +1,9 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Project;
+namespace Apps.FlowFit.Models.Dtos.Project;
 
-public class StatusResponse 
+public class StatusDto : EntitySimpleDto
 {
-    [Display("Status ID")]
-    public string Id { get; set; }
-
-    public string Description { get; set; }
-    
     [Display("Display order")]
     public int? DisplayOrder { get; set; }
     

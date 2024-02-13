@@ -1,10 +1,10 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Resource;
+namespace Apps.FlowFit.Models.Dtos.Resource;
 
-public class ResourceSimpleResponse 
+public class ResourceSimpleDto 
 {
-    [Display("Resource ID")]
+    [Display("ID")]
     public string Id { get; set; }
     
     [Display("Last name")]

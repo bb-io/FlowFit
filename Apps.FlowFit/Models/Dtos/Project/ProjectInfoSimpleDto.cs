@@ -1,8 +1,8 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Responses.Project;
+namespace Apps.FlowFit.Models.Dtos.Project;
 
-public class ProjectInfoSimpleResponse 
+public class ProjectInfoSimpleDto 
 {
     [Display("Source documents")]
     public int SourceDocuments { get; set; }

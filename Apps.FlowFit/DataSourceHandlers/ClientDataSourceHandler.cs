@@ -1,5 +1,5 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Responses.Client;
+using Apps.FlowFit.Models.Dtos.Client;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -15,7 +15,7 @@ public class ClientDataSourceHandler : FlowFitInvocable, IAsyncDataSourceHandler
         CancellationToken cancellationToken)
     {
         var request = new FlowFitRequest("/api/v1/Clients");
-        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ClientResponse>>(request);
+        var response = await Client.ExecuteWithErrorHandling<IEnumerable<ClientDto>>(request);
         var clients = response
             .Where(client => context.SearchString == null 
                               || client.Name.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

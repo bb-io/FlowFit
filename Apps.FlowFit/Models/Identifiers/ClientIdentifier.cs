@@ -1,4 +1,4 @@
-﻿using Apps.FlowFit.DataSourceHandlers;
+﻿using Apps.FlowFit.DataSourceHandlers.Client;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 

@@ -3,7 +3,7 @@ using Apps.FlowFit.Models.Dtos.Client;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
-namespace Apps.FlowFit.DataSourceHandlers;
+namespace Apps.FlowFit.DataSourceHandlers.Client;
 
 public class ClientDataSourceHandler : FlowFitInvocable, IAsyncDataSourceHandler
 {

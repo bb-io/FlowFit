@@ -30,9 +30,9 @@ public class ProjectActions : FlowFitInvocable
     [Action("Get project details", Description = "Get information about a project.")]
     public async Task<ProjectResponse> GetProject([ActionParameter] ProjectIdentifier projectIdentifier)
     {
-        var request = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}");
-        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
-        return new(response);
+        var getProjectRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}");
+        var project = await Client.ExecuteWithErrorHandling<ProjectDto>(getProjectRequest);
+        return await ProjectResponse.Create(Client, project);
     }
 
     #endregion
@@ -68,8 +68,8 @@ public class ProjectActions : FlowFitInvocable
                 })
             });
         
-        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
-        return new(response);
+        var project = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
+        return await ProjectResponse.Create(Client, project);
     }
 
     #endregion
@@ -80,43 +80,44 @@ public class ProjectActions : FlowFitInvocable
     public async Task<ProjectResponse> UpdateProject([ActionParameter] ProjectIdentifier projectIdentifier,
         [ActionParameter] UpdateProjectRequest input)
     {
-        var project = await GetProject(projectIdentifier);
-        var request = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}", Method.Put)
+        var getProjectRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}");
+        var project = await Client.ExecuteWithErrorHandling<ProjectDto>(getProjectRequest);
+
+        var updateProjectRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}", Method.Put)
             .WithJsonBody(new
             {
                 ClientId = project.Client.Id.ConvertToInt32(),
-                WorkTypeId = (input.WorkTypeId ?? project.WorkType.Id).ConvertToInt32(),
+                WorkTypeId = (input.WorkTypeId ?? project.Id).ConvertToInt32(),
                 Title = input.Title ?? project.Title,
                 ProjectRequesterId = project.Requester.Id.ConvertToInt32(),
-                TemplateId = (input.TemplateId ?? project.Template.Id).ConvertToInt32(),
-                ClientDepartmentId = project.ClientDepartment?.Id.ConvertToInt32(),
+                TemplateId = (input.TemplateId ?? project.TemplateId).ConvertToInt32(),
+                ClientDepartmentId = project.ClientDepartmentId.ConvertToInt32(),
                 SourceLanguageId = (input.SourceLanguageId ?? project.SourceLanguage?.Id).ConvertToInt32(),
                 ManagerId = (input.ManagerId ?? project.Manager?.Id).ConvertToInt32(),
-                Detail = input.Details ?? project.Details,
+                Detail = input.Details ?? project.Detail,
                 TargetLanguages = (input.TargetLanguageIds ?? project.TargetLanguages?.Select(language => language.Id))
                     ?.Select(int.Parse),
                 PrevProjectNumber = project.PrevProjectNumber,
-                DomainId = project.Domain?.Id.ConvertToInt32(),
+                DomainId = project.DomainId.ConvertToInt32(),
                 PriorityId = project.Priority?.Id.ConvertToInt32(),
                 ProjectContacts = project.ProjectContacts,
                 StatusId = (input.StatusId ?? project.Status.Id).ConvertToInt32(),
-                StartDate = project.DatesInformation.StartDate,
-                DelayReasonId = (input.DelayReasonId ?? project.DatesInformation.DelayReason?.Id).ConvertToInt32(),
-                RequestedDeadline = input.RequestedDeadline ?? project.DatesInformation.RequestedDeadline,
-                NegotiatedDeadline = input.NegotiatedDeadline ?? project.DatesInformation.NegotiatedDeadline,
-                CompletedDate = input.CompletedDate ?? project.DatesInformation.CompletedDate,
-                DeliveryDate = input.DeliveryDate ?? project.DatesInformation.DeliveryDate,
-                DateArchival = input.DateArchival ?? project.DatesInformation.DateArchival,
-                CancellationDate = project.DatesInformation.CancellationDate,
-                NegotiableDeadlineId = (input.NegotiableDeadlineId ?? project.DatesInformation.NegotiableDeadline?.Id)
-                    .ConvertToInt32()
+                StartDate = project.StartDate,
+                DelayReasonId = (input.DelayReasonId ?? project.DelayReasonId).ConvertToInt32(),
+                RequestedDeadline = input.RequestedDeadline ?? project.RequestedDeadline,
+                NegotiatedDeadline = input.NegotiatedDeadline ?? project.NegotiatedDeadline,
+                CompletedDate = input.CompletedDate ?? project.CompletedDate,
+                DeliveryDate = input.DeliveryDate ?? project.DeliveryDate,
+                DateArchival = input.DateArchival ?? project.DateArchival,
+                CancellationDate = project.CancellationDate,
+                NegotiableDeadlineId = (input.NegotiableDeadlineId ?? project.NegotiableDeadlineId).ConvertToInt32()
             });
         
-        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(request);
+        var response = await Client.ExecuteWithErrorHandling<ProjectDto>(updateProjectRequest);
 
         if (input.IsUrgent == true || project.IsUrgent // need to update separately since put call sets boolean fields to false
             || input.CloseOnDelivery == true || project.CloseOnDelivery
-            || input.IsNegotiableDeadline == true || project.DatesInformation.IsNegotiableDeadline
+            || input.IsNegotiableDeadline == true || project.IsNegotiableDeadline
             || input.AutomaticArchiving == true || project.AutomaticArchiving)
         {
             var fieldsToUpdate = new FieldValueDto[]
@@ -124,7 +125,7 @@ public class ProjectActions : FlowFitInvocable
                 new(nameof(input.IsUrgent), (input.IsUrgent ?? project.IsUrgent).ToString()),
                 new(nameof(input.CloseOnDelivery), (input.CloseOnDelivery ?? project.CloseOnDelivery).ToString()),
                 new(nameof(input.IsNegotiableDeadline),
-                    (input.IsNegotiableDeadline ?? project.DatesInformation.IsNegotiableDeadline).ToString()),
+                    (input.IsNegotiableDeadline ?? project.IsNegotiableDeadline).ToString()),
                 new(nameof(input.AutomaticArchiving),
                     (input.AutomaticArchiving ?? project.AutomaticArchiving).ToString())
             };
@@ -134,7 +135,7 @@ public class ProjectActions : FlowFitInvocable
             response = await Client.ExecuteWithErrorHandling<ProjectDto>(updateFieldsRequest);
         }
         
-        return new(response);
+        return await ProjectResponse.Create(Client, project);
     }
     
     #endregion

@@ -1,16 +1,18 @@
-﻿using Apps.FlowFit.Models.Dtos;
+﻿using Apps.FlowFit.Api;
+using Apps.FlowFit.Models.Dtos;
 using Apps.FlowFit.Models.Dtos.Client;
 using Apps.FlowFit.Models.Dtos.Document;
 using Apps.FlowFit.Models.Dtos.Language;
 using Apps.FlowFit.Models.Dtos.Project;
 using Apps.FlowFit.Models.Dtos.Resource;
+using Apps.FlowFit.Models.Dtos.Tasks;
 using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.FlowFit.Models.Responses.Project;
 
 public class ProjectResponse
 {
-    public ProjectResponse(ProjectDto project)
+    private ProjectResponse(ProjectDto project)
     {
         Id = project.Id;
         Title = project.Title;
@@ -117,11 +119,20 @@ public class ProjectResponse
     
     public EntitySimpleDto? Domain { get; set; } 
     
-    [Display("Project source documents")]
+    public IEnumerable<TaskListDto>? Tasks { get; set; }
+    
+    [Display("Source documents")]
     public IEnumerable<DocumentSimpleDto>? ProjectSourceDocuments { get; set; }
     
-    [Display("Project reference documents")]
+    [Display("Reference documents")]
     public IEnumerable<DocumentSimpleDto>? ProjectReferenceDocuments { get; set; }
+
+    public static async Task<ProjectResponse> Create(FlowFitClient client, ProjectDto project)
+    {
+        var getProjectTasksRequest = new FlowFitRequest($"/api/v1/Tasks?projectId={project.Id}");
+        var tasks = await client.ExecuteWithErrorHandling<IEnumerable<TaskListDto>>(getProjectTasksRequest);
+        return new(project) { Tasks = tasks };
+    }
 }
 
 public class DatesInformation

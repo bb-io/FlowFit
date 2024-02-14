@@ -26,7 +26,7 @@ public class ProjectDocumentActions : FlowFitInvocable
 
     #region Get
 
-    [Action("Download source document", Description = "Retrieve information on specified project source document " +
+    [Action("Get source document", Description = "Retrieve information on specified project source document " +
                                                       "and download it.")]
     public async Task<ProjectDocumentResponse> GetProjectDocument(
         [ActionParameter] ProjectIdentifier projectIdentifier, 

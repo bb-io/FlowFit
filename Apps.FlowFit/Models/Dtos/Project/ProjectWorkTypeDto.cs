@@ -2,12 +2,10 @@
 
 namespace Apps.FlowFit.Models.Dtos.Project;
 
-public class ProjectPrioritySimpleDto
+public class ProjectWorkTypeDto
 {
     [Display("ID")]
     public string Id { get; set; }
     
     public string Description { get; set; }
-    
-    public string? Color { get; set; }
 }

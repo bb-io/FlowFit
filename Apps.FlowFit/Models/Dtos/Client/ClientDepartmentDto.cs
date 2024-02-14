@@ -1,13 +1,11 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.FlowFit.Models.Dtos.Project;
+namespace Apps.FlowFit.Models.Dtos.Client;
 
-public class ProjectPrioritySimpleDto
+public class ClientDepartmentDto
 {
     [Display("ID")]
     public string Id { get; set; }
     
     public string Description { get; set; }
-    
-    public string? Color { get; set; }
 }

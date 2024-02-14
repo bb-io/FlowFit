@@ -1,5 +1,4 @@
 ﻿using Apps.FlowFit.Api;
-using Apps.FlowFit.Models.Dtos;
 using Apps.FlowFit.Models.Dtos.Client;
 using Apps.FlowFit.Models.Dtos.Document;
 using Apps.FlowFit.Models.Dtos.Language;
@@ -83,7 +82,7 @@ public class ProjectResponse
     public StatusDto Status { get; set; }
     
     [Display("Work type")]
-    public EntitySimpleDto WorkType { get; set; }
+    public ProjectWorkTypeDto WorkType { get; set; }
     
     [Display("Source language")]
     public LanguageSimpleDto? SourceLanguage { get; set; }
@@ -91,12 +90,12 @@ public class ProjectResponse
     [Display("Target languages")]
     public IEnumerable<LanguageSimpleDto>? TargetLanguages { get; set; }
     
-    public EntitySimpleDto Template { get; set; }
+    public ProjectTemplateDto Template { get; set; }
     
     public ClientSimpleDto Client { get; set; }
     
     [Display("Client department")]
-    public EntitySimpleDto? ClientDepartment { get; set; }
+    public ClientDepartmentDto? ClientDepartment { get; set; }
     
     [Display("Client requirements")]
     public string? ClientRequirements { get; set; }
@@ -117,7 +116,7 @@ public class ProjectResponse
     [Display("Dates information")]
     public DatesInformation DatesInformation { get; set; }
     
-    public EntitySimpleDto? Domain { get; set; } 
+    public ProjectDomainDto? Domain { get; set; } 
     
     public IEnumerable<TaskListDto>? Tasks { get; set; }
     
@@ -165,8 +164,8 @@ public class DatesInformation
     public DateTime? CancellationDate { get; set; }
     
     [Display("Negotiable deadline")]
-    public EntitySimpleDto? NegotiableDeadline { get; set; }
+    public ProjectNegotiableDeadlineDto? NegotiableDeadline { get; set; }
     
     [Display("Delay reason")]
-    public EntitySimpleDto? DelayReason { get; set; }
+    public ProjectDelayReasonDto? DelayReason { get; set; }
 }

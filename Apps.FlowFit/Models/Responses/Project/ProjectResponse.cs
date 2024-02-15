@@ -23,17 +23,17 @@ public class ProjectResponse
         AutomaticArchiving = project.AutomaticArchiving;
         CreatorId = project.CreatorId;
         Status = project.Status;
-        WorkType = new() { Id = project.WorkTypeId, Description = project.WorkType };
+        WorkTypeId = project.WorkTypeId;
         SourceLanguage = project.SourceLanguage;
         TargetLanguages = project.TargetLanguages;
-        Template = new() { Id = project.TemplateId, Description = project.Template };
+        TemplateId = project.TemplateId;
         Client = project.Client;
-        ClientDepartment = new() { Id = project.ClientDepartmentId, Description = project.ClientDepartment };
+        ClientDepartmentId = project.ClientDepartmentId;
         ClientRequirements = project.ClientRequirements;
         Manager = project.Manager;
         Requester = project.Requester;
         ProjectContacts = project.ProjectContacts;
-        Priority = project.Priority;
+        PriorityId = project.Priority?.Id;
         ProjectInfo = project.ProjectInfo;
         DatesInformation = new()
         {
@@ -46,10 +46,10 @@ public class ProjectResponse
             DeliveryDate = project.DeliveryDate,
             DateArchival = project.DateArchival,
             CancellationDate = project.CancellationDate,
-            NegotiableDeadline = new() { Id = project.NegotiableDeadlineId, Description = project.NegotiableDeadline },
-            DelayReason = new() { Id = project.DelayReasonId, Description = project.DelayReason }
+            NegotiableDeadlineId = project.NegotiableDeadlineId,
+            DelayReasonId = project.DelayReasonId
         };
-        Domain = new() { Id = project.DomainId, Description = project.Domain };
+        DomainId = project.DomainId;
         ProjectSourceDocuments = project.ProjectSourceDocuments;
         ProjectReferenceDocuments = project.ProjectReferenceDocuments;
     }
@@ -81,8 +81,8 @@ public class ProjectResponse
     
     public StatusDto Status { get; set; }
     
-    [Display("Work type")]
-    public ProjectWorkTypeDto WorkType { get; set; }
+    [Display("Work type ID")]
+    public string WorkTypeId { get; set; }
     
     [Display("Source language")]
     public LanguageSimpleDto? SourceLanguage { get; set; }
@@ -90,12 +90,13 @@ public class ProjectResponse
     [Display("Target languages")]
     public IEnumerable<LanguageSimpleDto>? TargetLanguages { get; set; }
     
-    public ProjectTemplateDto Template { get; set; }
+    [Display("Template ID")]
+    public string TemplateId { get; set; }
     
     public ClientSimpleDto Client { get; set; }
     
-    [Display("Client department")]
-    public ClientDepartmentDto? ClientDepartment { get; set; }
+    [Display("Client department ID")]
+    public string? ClientDepartmentId { get; set; }
     
     [Display("Client requirements")]
     public string? ClientRequirements { get; set; }
@@ -108,7 +109,8 @@ public class ProjectResponse
     [Display("Project contacts")]
     public IEnumerable<ProjectContactDto>? ProjectContacts { get; set; }
     
-    public ProjectPrioritySimpleDto? Priority { get; set; }
+    [Display("Priority ID")]
+    public string? PriorityId { get; set; }
     
     [Display("Project info")]
     public ProjectInfoSimpleDto? ProjectInfo { get; set; }
@@ -116,7 +118,8 @@ public class ProjectResponse
     [Display("Dates information")]
     public DatesInformation DatesInformation { get; set; }
     
-    public ProjectDomainDto? Domain { get; set; } 
+    [Display("Domain ID")]
+    public string? DomainId { get; set; } 
     
     public IEnumerable<TaskListDto>? Tasks { get; set; }
     
@@ -163,9 +166,9 @@ public class DatesInformation
     [Display("Cancellation date")]
     public DateTime? CancellationDate { get; set; }
     
-    [Display("Negotiable deadline")]
-    public ProjectNegotiableDeadlineDto? NegotiableDeadline { get; set; }
+    [Display("Negotiable deadline ID")]
+    public string? NegotiableDeadlineId { get; set; }
     
-    [Display("Delay reason")]
-    public ProjectDelayReasonDto? DelayReason { get; set; }
+    [Display("Delay reason ID")]
+    public string? DelayReasonId { get; set; }
 }

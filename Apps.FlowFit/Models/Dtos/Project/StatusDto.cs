@@ -9,8 +9,6 @@ public class StatusDto
     
     public string Description { get; set; }
     
-    public string? Color { get; set; }
-    
     [Display("Is active")]
     public bool IsActive { get; set; }
 }

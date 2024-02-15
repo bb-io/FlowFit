@@ -12,18 +12,11 @@ public class ClientDto : ClientSimpleDto
     [Display("Module ID")]
     public string ModuleId { get; set; }
     
-    public string? Module { get; set; }
-    
     [Display("Domain ID")]
     public string DomainId { get; set; }
     
-    public string? Domain { get; set; }
-    
     [Display("Project manager ID")]
     public string ProjectManagerId { get; set; }
-    
-    [Display("Project manager")]
-    public string? ProjectManager { get; set; }
     
     [Display("Project template ID")]
     public string ProjectTemplateId { get; set; }

@@ -7,6 +7,6 @@ public class DocumentSimpleDto
     [Display("ID")]
     public string Id { get; set; }
     
-    [Display("Filename")]
+    [Display("File name")]
     public string FileName { get; set; }
 }

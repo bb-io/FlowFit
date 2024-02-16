@@ -4,7 +4,8 @@ using Apps.FlowFit.Models.Dtos.Document;
 using Apps.FlowFit.Models.Dtos.Language;
 using Apps.FlowFit.Models.Dtos.Project;
 using Apps.FlowFit.Models.Dtos.Resource;
-using Apps.FlowFit.Models.Dtos.Tasks;
+using Apps.FlowFit.Models.Dtos.Task;
+using Apps.FlowFit.Models.Responses.Task;
 using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.FlowFit.Models.Responses.Project;
@@ -121,7 +122,7 @@ public class ProjectResponse
     [Display("Domain ID")]
     public string? DomainId { get; set; } 
     
-    public IEnumerable<TaskListDto>? Tasks { get; set; }
+    public IEnumerable<TaskListResponse>? Tasks { get; set; }
     
     [Display("Source documents")]
     public IEnumerable<DocumentSimpleDto>? ProjectSourceDocuments { get; set; }
@@ -133,7 +134,7 @@ public class ProjectResponse
     {
         var getProjectTasksRequest = new FlowFitRequest($"/api/v1/Tasks?projectId={project.Id}");
         var tasks = await client.ExecuteWithErrorHandling<IEnumerable<TaskListDto>>(getProjectTasksRequest);
-        return new(project) { Tasks = tasks };
+        return new(project) { Tasks = tasks.Select(task => new TaskListResponse(task)) };
     }
 }
 

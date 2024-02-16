@@ -74,7 +74,7 @@ public class ProjectActions : FlowFitInvocable
 
     #endregion
     
-    #region Patch
+    #region Put
     
     [Action("Update project", Description = "Update a project, specifying only the fields that require updating.")]
     public async Task<ProjectResponse> UpdateProject([ActionParameter] ProjectIdentifier projectIdentifier,
@@ -94,6 +94,7 @@ public class ProjectActions : FlowFitInvocable
                 ClientDepartmentId = project.ClientDepartmentId.ConvertToInt32(),
                 SourceLanguageId = (input.SourceLanguageId ?? project.SourceLanguage?.Id).ConvertToInt32(),
                 ManagerId = (input.ManagerId ?? project.Manager?.Id).ConvertToInt32(),
+                Manager2Id = project.Manager2?.Id.ConvertToInt32(),
                 Detail = input.Details ?? project.Detail,
                 TargetLanguages = (input.TargetLanguageIds ?? project.TargetLanguages?.Select(language => language.Id))
                     ?.Select(int.Parse),
@@ -110,7 +111,15 @@ public class ProjectActions : FlowFitInvocable
                 DeliveryDate = input.DeliveryDate ?? project.DeliveryDate,
                 DateArchival = input.DateArchival ?? project.DateArchival,
                 CancellationDate = project.CancellationDate,
-                NegotiableDeadlineId = (input.NegotiableDeadlineId ?? project.NegotiableDeadlineId).ConvertToInt32()
+                NegotiableDeadlineId = (input.NegotiableDeadlineId ?? project.NegotiableDeadlineId).ConvertToInt32(),
+                ModuleId = project.ModuleId.ConvertToInt32(),
+                Quote = project.Quote,
+                DeliveringEmail = project.DeliveringEmail,
+                TargetAudienceId = project.TargetAudienceId.ConvertToInt32(),
+                ReadershipId = project.ReadershipId.ConvertToInt32(),
+                ProductId = project.ProductId.ConvertToInt32(),
+                ProductAreaId = project.ProductAreaId.ConvertToInt32(),
+                ChargeCodeId = project.ChargeCodeId.ConvertToInt32()
             });
         
         var response = await Client.ExecuteWithErrorHandling<ProjectDto>(updateProjectRequest);
@@ -118,7 +127,8 @@ public class ProjectActions : FlowFitInvocable
         if (input.IsUrgent == true || project.IsUrgent // need to update separately since put call sets boolean fields to false
             || input.CloseOnDelivery == true || project.CloseOnDelivery
             || input.IsNegotiableDeadline == true || project.IsNegotiableDeadline
-            || input.AutomaticArchiving == true || project.AutomaticArchiving)
+            || input.AutomaticArchiving == true || project.AutomaticArchiving 
+            || project.IsQuoteRequested)
         {
             var fieldsToUpdate = new FieldValueDto[]
             {
@@ -127,15 +137,17 @@ public class ProjectActions : FlowFitInvocable
                 new(nameof(input.IsNegotiableDeadline),
                     (input.IsNegotiableDeadline ?? project.IsNegotiableDeadline).ToString()),
                 new(nameof(input.AutomaticArchiving),
-                    (input.AutomaticArchiving ?? project.AutomaticArchiving).ToString())
+                    (input.AutomaticArchiving ?? project.AutomaticArchiving).ToString()),
+                new(nameof(project.IsQuoteRequested), project.IsQuoteRequested.ToString())
             };
 
-            var updateFieldsRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}/partialupdate",
-                Method.Patch).WithJsonBody(fieldsToUpdate);
+            var updateFieldsRequest = new FlowFitRequest(
+                    $"/api/v1/Projects/{projectIdentifier.ProjectId}/partialupdate", Method.Patch)
+                .WithJsonBody(fieldsToUpdate);
             response = await Client.ExecuteWithErrorHandling<ProjectDto>(updateFieldsRequest);
         }
         
-        return await ProjectResponse.Create(Client, project);
+        return await ProjectResponse.Create(Client, response);
     }
     
     #endregion

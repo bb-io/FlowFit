@@ -9,15 +9,11 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 namespace Apps.FlowFit.Actions;
 
 [ActionList]
-public class TaskActions : FlowFitInvocable
+public class TaskActions(InvocationContext invocationContext) : FlowFitInvocable(invocationContext)
 {
-    public TaskActions(InvocationContext invocationContext) : base(invocationContext)
-    {
-    }
-    
     #region Get
 
-    [Action("Get task details", Description = "Get information about a task.")]
+    [Action("Get task", Description = "Get information about a task.")]
     public async Task<TaskResponse> GetTask([ActionParameter] TaskIdentifier taskIdentifier)
     {
         var request = new FlowFitRequest($"/api/v1/Tasks/{taskIdentifier.TaskId}");

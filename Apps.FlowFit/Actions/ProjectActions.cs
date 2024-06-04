@@ -15,19 +15,12 @@ using RestSharp;
 namespace Apps.FlowFit.Actions;
 
 [ActionList]
-public class ProjectActions : FlowFitInvocable
+public class ProjectActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
+    : FlowFitInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-    
-    public ProjectActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
-        : base(invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     #region Get
 
-    [Action("Get project details", Description = "Get information about a project.")]
+    [Action("Get project", Description = "Get information about a project.")]
     public async Task<ProjectResponse> GetProject([ActionParameter] ProjectIdentifier projectIdentifier)
     {
         var getProjectRequest = new FlowFitRequest($"/api/v1/Projects/{projectIdentifier.ProjectId}");
@@ -39,7 +32,7 @@ public class ProjectActions : FlowFitInvocable
 
     #region Post
 
-    [Action("Create new project", Description = "Create a new project.")]
+    [Action("Create project", Description = "Create a new project.")]
     public async Task<ProjectResponse> PostProject([ActionParameter] ClientIdentifier clientIdentifier, 
         [ActionParameter] CreateProjectRequest input)
     {
@@ -59,7 +52,7 @@ public class ProjectActions : FlowFitInvocable
                 TargetLanguages = input.TargetLanguageIds?.Select(int.Parse),
                 SourceFiles = input.SourceFiles?.Select(async file =>
                 {
-                    var fileStream = await _fileManagementClient.DownloadAsync(file);
+                    var fileStream = await fileManagementClient.DownloadAsync(file);
                     return new
                     {
                         FileName = file.Name,

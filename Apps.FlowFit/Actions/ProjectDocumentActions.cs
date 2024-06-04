@@ -14,16 +14,9 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 namespace Apps.FlowFit.Actions;
 
 [ActionList]
-public class ProjectDocumentActions : FlowFitInvocable
+public class ProjectDocumentActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
+    : FlowFitInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-    
-    public ProjectDocumentActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
-        : base(invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     #region Get
 
     [Action("Get source document", Description = "Retrieve information on specified project source document " +
@@ -100,7 +93,7 @@ public class ProjectDocumentActions : FlowFitInvocable
         if (!MimeTypes.TryGetMimeType(filename, out var contentType))
             contentType = MediaTypeNames.Application.Octet;
             
-        var fileReference = await _fileManagementClient.UploadAsync(fileStream, contentType, filename);
+        var fileReference = await fileManagementClient.UploadAsync(fileStream, contentType, filename);
         return fileReference;
     }
     

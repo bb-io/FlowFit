@@ -29,7 +29,6 @@ Flowfit specializes in bespoke hydraulic solutions. We pride ourselves on solvin
 
 - **Get project** get information about a project.
 - **Create project** creates a new project.
-- **Update project** updates a project, specifying only the fields that require updating.
 - **Delete project** deletes the specified project, along with all associated entities.
 
 ### Project documents
@@ -62,11 +61,6 @@ Flowfit specializes in bespoke hydraulic solutions. We pride ourselves on solvin
 - **Charge Codes**
 
 FlowFit API quite large and we are working on adding more features to this app. If you need any specific feature, please let us know.
-
-## FlowFit internal issues
-
-- **Update project endpoint** (`(PUT) api/v1/Projects`) returns 'An error occurred while updating the entries. See the inner exception for details.' message
-- **Complete task endpoint** (`(POST) /api/v1/Tasks`) returns 'Internal Server Error' message
 
 ## Feedback
 

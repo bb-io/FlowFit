@@ -69,7 +69,7 @@ public class ProjectActions(InvocationContext invocationContext, IFileManagement
     
     #region Put
     
-    [Action("Update project", Description = "Update a project, specifying only the fields that require updating.")]
+    // [Action("Update project", Description = "Update a project, specifying only the fields that require updating.")]
     public async Task<ProjectResponse> UpdateProject([ActionParameter] ProjectIdentifier projectIdentifier,
         [ActionParameter] UpdateProjectRequest input)
     {

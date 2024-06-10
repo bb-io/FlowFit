@@ -2,8 +2,13 @@
 
 namespace Apps.FlowFit.Models.Dtos.Language;
 
-public class LanguageSimpleDto : EntitySimpleDto
+public class LanguageSimpleDto
 {
+    [Display("ID")]
+    public string Id { get; set; }
+    
+    public string Description { get; set; }
+    
     [Display("Abbreviation")]
     public string Abrev { get; set; }
     

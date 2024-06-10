@@ -11,6 +11,7 @@ namespace Apps.FlowFit.Api;
 
 public class FlowFitClient : BlackBirdRestClient
 {
+    private const string UtcTimeZoneId = "UTC";
     protected override JsonSerializerSettings JsonSettings =>
         new() { MissingMemberHandling = MissingMemberHandling.Ignore };
 
@@ -47,14 +48,21 @@ public class FlowFitClient : BlackBirdRestClient
     {
         var login = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Login).Value;
         var password = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Password).Value;
-        
+
+        var token = GetAccessToken(login, password, UtcTimeZoneId);
+        var timeZoneId = GetTimeZoneId(token);
+        return GetAccessToken(login, password, timeZoneId);
+    }
+
+    private string GetAccessToken(string login, string password, string timeZoneId)
+    {
         var request = new RestRequest("/api/v1/Authentication/AuthenticateUser", Method.Post)
             .WithJsonBody(new
             {
                 login,
                 password,
                 culture = "en",
-                timeZone = TimeZoneInfo.Local.Id
+                timeZone = timeZoneId
             });
         var response = new RestClient(Urls.Api).Execute(request);
         
@@ -63,5 +71,23 @@ public class FlowFitClient : BlackBirdRestClient
         
         var sessionToken = JsonConvert.DeserializeObject<SessionTokenDto>(response.Content!, JsonSettings);
         return sessionToken!.TokenValue;
+    }
+
+    private string GetTimeZoneId(string accessToken)
+    {
+        var client = new RestClient(Urls.Api);
+        var getTimeZonesRequest = new RestRequest("/api/v1/TimeZone");
+        getTimeZonesRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+        
+        var timeZonesResponse = client.Execute(getTimeZonesRequest);
+        var timeZones =
+            JsonConvert.DeserializeObject<IEnumerable<TimeZoneDto>>(timeZonesResponse.Content!, JsonSettings)!;
+
+        var localTimeZoneId = TimeZoneInfo.Local.Id;
+
+        if (timeZones.All(timeZone => timeZone.Id != localTimeZoneId))
+            return UtcTimeZoneId;
+
+        return localTimeZoneId;
     }
 }

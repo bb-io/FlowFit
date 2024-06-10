@@ -2,10 +2,12 @@
 
 namespace Apps.FlowFit.Models.Dtos.Project;
 
-public class ProjectPrioritySimpleDto : EntitySimpleDto
+public class ProjectPrioritySimpleDto
 {
-    public string? Color { get; set; }
+    [Display("ID")]
+    public string Id { get; set; }
     
-    [Display("Sort order")]
-    public int? SortOrder { get; set; }
+    public string Description { get; set; }
+    
+    public string? Color { get; set; }
 }

@@ -18,12 +18,6 @@ public class ClientContactSimpleDto
     [Display("Client ID")]
     public string ClientId { get; set; }
     
-    [Display("Client")]
-    public string? Client { get; set; }
-    
     [Display("Client department ID")]
     public string? ClientDepartmentId { get; set; }
-    
-    [Display("Client department")]
-    public string? ClientDepartment { get; set; }
 }

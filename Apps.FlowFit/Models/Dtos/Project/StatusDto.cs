@@ -2,13 +2,13 @@
 
 namespace Apps.FlowFit.Models.Dtos.Project;
 
-public class StatusDto : EntitySimpleDto
+public class StatusDto
 {
-    [Display("Display order")]
-    public int? DisplayOrder { get; set; }
+    [Display("ID")]
+    public string Id { get; set; }
+    
+    public string Description { get; set; }
     
     [Display("Is active")]
     public bool IsActive { get; set; }
-    
-    public string? Color { get; set; }
 }

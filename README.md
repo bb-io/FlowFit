@@ -6,7 +6,7 @@ Blackbird is the new automation backbone for the language technology industry. B
 
 <!-- begin docs -->  
 
-Flowfit specializes in bespoke hydraulic solutions. We pride ourselves on solving problems for our customers and creating unique systems and parts.
+Flowfit is a translation management system that optimizes task assignment, facilitates remote work between different stakeholders and allows project managers to make informed decisions thanks to analytical and statistical reports.
 
 ## Before setting up
 

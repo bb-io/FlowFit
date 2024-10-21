@@ -19,29 +19,36 @@ public class FlowFitClient : BlackBirdRestClient
         : base(new RestClientOptions
             { ThrowOnAnyError = false, BaseUrl = new Uri(Urls.Api) })
     {
-        var accessToken = GetAccessToken(authenticationCredentialsProviders);
+        var accessToken = GetAccessToken(authenticationCredentialsProviders).Result;
         this.AddDefaultHeader("Authorization", $"Bearer {accessToken}"); 
     }
 
     protected override Exception ConfigureErrorException(RestResponse response) 
     {
-        var error = JsonConvert.DeserializeObject<ErrorDto>(response.Content!);
-        string errorMessage;
-
-        if (error != null && (error.Title != null || error.Detail != null))
+        try
         {
-            errorMessage = (error.Title ?? error.Type) ?? "Failed to execute the action";
+            var error = JsonConvert.DeserializeObject<ErrorDto>(response.Content!);
+            string errorMessage;
 
-            if (error.Detail != null)
-                errorMessage += $": {error.Detail}";
+            if (error != null && (error.Title != null || error.Detail != null))
+            {
+                errorMessage = (error.Title ?? error.Type) ?? "Failed to execute the action";
+
+                if (error.Detail != null)
+                    errorMessage += $": {error.Detail}";
+            }
+            else
+            {
+                var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageDto>(response.Content!);
+                errorMessage = errorMessageDto!.Message;
+            }
+
+            return new(errorMessage);
         }
-        else
+        catch (Exception e)
         {
-            var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageDto>(response.Content!);
-            errorMessage = errorMessageDto!.Message;
+            return new($"Something went wrong. Please check the response status code: {response.StatusCode} and content: {response.Content}");
         }
-
-        return new(errorMessage);
     }
 
     private async Task<string> GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)

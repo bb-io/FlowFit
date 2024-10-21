@@ -50,9 +50,8 @@ public class FlowFitClient : BlackBirdRestClient
         var password = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Password).Value;
 
         var token = GetAccessToken(login, password, UtcTimeZoneId);
-        return token;
-        //var timeZoneId = GetTimeZoneId(token);
-        //return GetAccessToken(login, password, timeZoneId);
+        var timeZoneId = GetTimeZoneId(token);
+        return GetAccessToken(login, password, timeZoneId);
     }
 
     private string GetAccessToken(string login, string password, string timeZoneId)

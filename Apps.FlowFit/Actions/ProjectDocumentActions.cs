@@ -10,6 +10,8 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using Blackbird.Applications.Sdk.Utils.Extensions.Http;
+using RestSharp;
 
 namespace Apps.FlowFit.Actions;
 
@@ -71,6 +73,32 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
                 $"/api/v1/ProjectDocuments/{projectIdentifier.ProjectId}/AllDeliverableDocuments");
 
         return new(files);
+    }
+    
+    [Action("Upload source document", Description = "Upload a source document to the specified project.")]
+    public async Task<UploadProjectDocumentResponse> UploadProjectDocument(
+        [ActionParameter] ProjectIdentifier projectIdentifier,
+        [ActionParameter] [Display("File")] FileReference fileReference)
+    {
+        var stream = await fileManagementClient.DownloadAsync(fileReference);
+        var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+        
+        var base64 = await memoryStream.ConvertToBase64String();
+        var request = new FlowFitRequest($"/api/v1/ProjectDocuments/AddSourceDocument", Method.Post)
+            .WithJsonBody(new
+            {
+                projectId = projectIdentifier.ProjectId,
+                fileName = fileReference.Name,
+                fileContent = base64
+            });
+        
+        var document = await Client.ExecuteWithErrorHandling(request);
+        return new()
+        {
+            ProjectDocumentId = document.Content ?? throw new Exception($"Failed to upload project document. Response: {document}")
+        };
     }
     
     #endregion

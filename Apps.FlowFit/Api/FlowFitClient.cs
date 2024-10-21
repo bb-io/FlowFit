@@ -44,17 +44,18 @@ public class FlowFitClient : BlackBirdRestClient
         return new(errorMessage);
     }
 
-    private string GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
+    private async Task<string> GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
         var login = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Login).Value;
         var password = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Password).Value;
 
-        var token = GetAccessToken(login, password, UtcTimeZoneId);
-        var timeZoneId = GetTimeZoneId(token);
-        return GetAccessToken(login, password, timeZoneId);
+        var token = await GetAccessToken(login, password, UtcTimeZoneId);
+        return token;
+        //var timeZoneId = GetTimeZoneId(token);
+        //return GetAccessToken(login, password, timeZoneId);
     }
 
-    private string GetAccessToken(string login, string password, string timeZoneId)
+    private async Task<string> GetAccessToken(string login, string password, string timeZoneId)
     {
         var request = new RestRequest("/api/v1/Authentication/AuthenticateUser", Method.Post)
             .WithJsonBody(new
@@ -64,10 +65,15 @@ public class FlowFitClient : BlackBirdRestClient
                 culture = "en",
                 timeZone = timeZoneId
             });
-        var response = new RestClient(Urls.Api).Execute(request);
         
+        var response = await new RestClient(Urls.Api).ExecuteAsync(request);
         if (!response.IsSuccessful)
             throw new("Failed to authorize. Please check the validity of your login and password.");
+        
+        await WebhookLogger.LogAsync(new
+        {
+            response.Content
+        });
         
         var sessionToken = JsonConvert.DeserializeObject<SessionTokenDto>(response.Content!, JsonSettings);
         return sessionToken!.TokenValue;

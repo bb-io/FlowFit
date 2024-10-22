@@ -1,5 +1,6 @@
 ﻿using Apps.FlowFit.Api;
 using Apps.FlowFit.Models.Identifiers;
+using Apps.FlowFit.Models.Requests.Project;
 using Apps.FlowFit.Models.Responses.Document;
 using Apps.FlowFit.Models.Responses.Project;
 using Apps.FlowFit.Polling.Models;
@@ -15,7 +16,8 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
         Description = "Returns project status that was changed after the last polling time")]
     public async Task<PollingEventResponse<ProjectStatusMemory, ProjectsResponse>> OnProjectStatusChanged(
         PollingEventRequest<ProjectStatusMemory> request,
-        [PollingEventParameter] ProjectOptionalIdentifer projectIdentifier)
+        [PollingEventParameter] ProjectOptionalIdentifer projectIdentifier,
+        [PollingEventParameter] ProjectStatusRequest statusRequest)
     {
         var apiRequest = new FlowFitRequest($"/api/v1/Projects");
         var projects = await Client.ExecuteWithErrorHandling<List<ProjectResponse>>(apiRequest);
@@ -35,8 +37,10 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
         }
         
         var newProjects = projects
-            .Where(x => !request.Memory.Entities.Any(y => y.ProjectId == x.Id && y.Status == x.Status.Id))
+            .Where(x => request.Memory.Entities.Any(y => y.ProjectId == x.Id && y.Status != x.Status.Id))
             .ToList();
+        
+        newProjects = newProjects.Where(x => x.Status.Id == statusRequest.StatusId).ToList();
         
         if(projectIdentifier.ProjectId != null)
         {

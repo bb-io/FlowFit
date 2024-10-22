@@ -4,6 +4,7 @@ using Apps.FlowFit.Extensions;
 using Apps.FlowFit.Models;
 using Apps.FlowFit.Models.Dtos.Document;
 using Apps.FlowFit.Models.Identifiers;
+using Apps.FlowFit.Models.Requests.Document;
 using Apps.FlowFit.Models.Responses.Document;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -78,9 +79,9 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
     [Action("Upload source document", Description = "Upload a source document to the specified project.")]
     public async Task<UploadProjectDocumentResponse> UploadProjectDocument(
         [ActionParameter] ProjectIdentifier projectIdentifier,
-        [ActionParameter] [Display("File")] FileReference fileReference)
+        [ActionParameter] UploadSourceDocumentRequest documentRequest)
     {
-        var stream = await fileManagementClient.DownloadAsync(fileReference);
+        var stream = await fileManagementClient.DownloadAsync(documentRequest.File);
         var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
@@ -90,7 +91,7 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
             .WithJsonBody(new
             {
                 projectId = projectIdentifier.ProjectId,
-                fileName = fileReference.Name,
+                fileName = documentRequest.File.Name,
                 fileContent = base64
             });
         

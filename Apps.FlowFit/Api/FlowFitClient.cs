@@ -77,11 +77,6 @@ public class FlowFitClient : BlackBirdRestClient
         if (!response.IsSuccessful)
             throw new("Failed to authorize. Please check the validity of your login and password.");
         
-        await WebhookLogger.LogAsync(new
-        {
-            response.Content
-        });
-        
         var sessionToken = JsonConvert.DeserializeObject<SessionTokenDto>(response.Content!, JsonSettings);
         return sessionToken!.TokenValue;
     }

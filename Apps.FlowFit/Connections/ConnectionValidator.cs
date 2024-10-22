@@ -23,8 +23,6 @@ public class ConnectionValidator : IConnectionValidator
         }
         catch (Exception exception)
         {
-            await WebhookLogger.LogAsync(exception);
-            
             return new ConnectionValidationResponse
             {
                 IsValid = false,

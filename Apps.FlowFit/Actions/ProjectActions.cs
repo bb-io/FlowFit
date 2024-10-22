@@ -36,6 +36,20 @@ public class ProjectActions(InvocationContext invocationContext, IFileManagement
     public async Task<ProjectResponse> PostProject([ActionParameter] ClientIdentifier clientIdentifier, 
         [ActionParameter] CreateProjectRequest input)
     {
+        var sourceFilesTasks = input.SourceFiles?.Select(async file =>
+        {
+            var fileStream = await fileManagementClient.DownloadAsync(file);
+            return new
+            {
+                FileName = file.Name,
+                FileContent = await fileStream.ConvertToBase64String()
+            };
+        });
+        
+        var sourceFiles = sourceFilesTasks != null 
+            ? await Task.WhenAll(sourceFilesTasks) 
+            : null;
+        
         var request = new FlowFitRequest("/api/v1/Projects", Method.Post)
             .WithJsonBody(new
             {
@@ -50,15 +64,7 @@ public class ProjectActions(InvocationContext invocationContext, IFileManagement
                 RequestedDeadline = input.RequestedDeadline,
                 Detail = input.Details,
                 TargetLanguages = input.TargetLanguageIds?.Select(int.Parse),
-                SourceFiles = input.SourceFiles?.Select(async file =>
-                {
-                    var fileStream = await fileManagementClient.DownloadAsync(file);
-                    return new
-                    {
-                        FileName = file.Name,
-                        FileContent = await fileStream.ConvertToBase64String()
-                    };
-                })
+                SourceFiles = sourceFiles
             });
         
         var project = await Client.ExecuteWithErrorHandling<ProjectDto>(request);

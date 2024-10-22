@@ -34,14 +34,6 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
             .Where(x => !request.Memory.TaskIds.Contains(x.TaskId))
             .ToList();
 
-        await WebhookLogger.LogAsync(new
-        {
-            message = "Polling for new project documents",
-            request.Memory.TaskIds,
-            allDocuments = documents,
-            newDocuments
-        });
-
         return new PollingEventResponse<DocumentMemory, ProjectDeliveredResponse>
         {
             FlyBird = newDocuments.Count > 0,

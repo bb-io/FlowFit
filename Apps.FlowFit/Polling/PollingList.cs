@@ -1,4 +1,5 @@
 ﻿using Apps.FlowFit.Api;
+using Apps.FlowFit.Models.Dtos.Project;
 using Apps.FlowFit.Models.Identifiers;
 using Apps.FlowFit.Models.Requests.Project;
 using Apps.FlowFit.Models.Responses.Document;
@@ -22,7 +23,7 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
         try
         {
             var apiRequest = new FlowFitRequest($"/api/v1/Projects");
-            var projects = await Client.ExecuteWithErrorHandling<List<ProjectResponse>>(apiRequest);
+            var projects = await Client.ExecuteWithErrorHandling<List<ProjectDto>>(apiRequest);
 
             if (request.Memory is null)
             {
@@ -64,7 +65,7 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
                 }).ToList()},
                 Result = new ProjectsResponse
                 {
-                    Projects = newProjects
+                    Projects = newProjects.Select(x => new ProjectResponse(x)).ToList()
                 }
             };
         }

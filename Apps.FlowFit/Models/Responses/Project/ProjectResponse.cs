@@ -12,7 +12,7 @@ namespace Apps.FlowFit.Models.Responses.Project;
 
 public class ProjectResponse
 {
-    private ProjectResponse(ProjectDto project)
+    public ProjectResponse(ProjectDto project)
     {
         Id = project.Id;
         Title = project.Title;

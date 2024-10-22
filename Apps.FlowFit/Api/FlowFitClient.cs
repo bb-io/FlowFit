@@ -19,42 +19,50 @@ public class FlowFitClient : BlackBirdRestClient
         : base(new RestClientOptions
             { ThrowOnAnyError = false, BaseUrl = new Uri(Urls.Api) })
     {
-        var accessToken = GetAccessToken(authenticationCredentialsProviders);
+        var accessToken = GetAccessToken(authenticationCredentialsProviders).Result;
         this.AddDefaultHeader("Authorization", $"Bearer {accessToken}"); 
     }
 
     protected override Exception ConfigureErrorException(RestResponse response) 
     {
-        var error = JsonConvert.DeserializeObject<ErrorDto>(response.Content!);
-        string errorMessage;
-
-        if (error != null && (error.Title != null || error.Detail != null))
+        try
         {
-            errorMessage = (error.Title ?? error.Type) ?? "Failed to execute the action";
+            var error = JsonConvert.DeserializeObject<ErrorDto>(response.Content!);
+            string errorMessage;
 
-            if (error.Detail != null)
-                errorMessage += $": {error.Detail}";
+            if (error != null && (error.Title != null || error.Detail != null))
+            {
+                errorMessage = (error.Title ?? error.Type) ?? "Failed to execute the action";
+
+                if (error.Detail != null)
+                    errorMessage += $": {error.Detail}";
+            }
+            else
+            {
+                var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageDto>(response.Content!);
+                errorMessage = errorMessageDto!.Message;
+            }
+
+            return new(errorMessage);
         }
-        else
+        catch (Exception e)
         {
-            var errorMessageDto = JsonConvert.DeserializeObject<ErrorMessageDto>(response.Content!);
-            errorMessage = errorMessageDto!.Message;
+            return new($"Something went wrong. Please check the response status code: {response.StatusCode} and content: {response.Content}");
         }
-
-        return new(errorMessage);
     }
 
-    private string GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
+    private async Task<string> GetAccessToken(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
         var login = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Login).Value;
         var password = authenticationCredentialsProviders.First(p => p.KeyName == CredsNames.Password).Value;
 
-        var token = GetAccessToken(login, password, UtcTimeZoneId);
-        var timeZoneId = GetTimeZoneId(token);
-        return GetAccessToken(login, password, timeZoneId);
+        var token = await GetAccessToken(login, password, UtcTimeZoneId);
+        return token;
+        //var timeZoneId = GetTimeZoneId(token);
+        //return GetAccessToken(login, password, timeZoneId);
     }
 
-    private string GetAccessToken(string login, string password, string timeZoneId)
+    private async Task<string> GetAccessToken(string login, string password, string timeZoneId)
     {
         var request = new RestRequest("/api/v1/Authentication/AuthenticateUser", Method.Post)
             .WithJsonBody(new
@@ -64,8 +72,8 @@ public class FlowFitClient : BlackBirdRestClient
                 culture = "en",
                 timeZone = timeZoneId
             });
-        var response = new RestClient(Urls.Api).Execute(request);
         
+        var response = await new RestClient(Urls.Api).ExecuteAsync(request);
         if (!response.IsSuccessful)
             throw new("Failed to authorize. Please check the validity of your login and password.");
         

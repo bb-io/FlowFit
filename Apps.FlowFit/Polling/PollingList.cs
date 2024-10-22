@@ -12,8 +12,8 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
 {
     [PollingEvent("On project documents delivered",
         Description = "Returns project documents that were delivered after the last polling time")]
-    public async Task<PollingEventResponse<FilesMemory, ProjectDeliveredResponse>>
-        OnProjectFilesDelivered(PollingEventRequest<FilesMemory> request,
+    public async Task<PollingEventResponse<DocumentMemory, ProjectDeliveredResponse>>
+        OnProjectFilesDelivered(PollingEventRequest<DocumentMemory> request,
             [PollingEventParameter] ProjectIdentifier projectIdentifier)
     {
         var apiRequest =
@@ -22,29 +22,30 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
 
         if (request.Memory is null)
         {
-            return new PollingEventResponse<FilesMemory, ProjectDeliveredResponse>
+            return new PollingEventResponse<DocumentMemory, ProjectDeliveredResponse>
             {
                 FlyBird = false,
-                Memory = new FilesMemory { LastPollingTime = DateTime.UtcNow },
+                Memory = new DocumentMemory { TaskIds = documents.Select(x => x.TaskId).ToList() },
                 Result = null
             };
         }
         
         var newDocuments = documents
-            .Where(x => x.ModificationDate.ToUniversalTime() > request.Memory.LastPollingTime.ToUniversalTime()).ToList();
+            .Where(x => !request.Memory.TaskIds.Contains(x.TaskId))
+            .ToList();
 
         await WebhookLogger.LogAsync(new
         {
             message = "Polling for new project documents",
-            request.Memory.LastPollingTime,
+            request.Memory.TaskIds,
             allDocuments = documents,
             newDocuments
         });
 
-        return new PollingEventResponse<FilesMemory, ProjectDeliveredResponse>
+        return new PollingEventResponse<DocumentMemory, ProjectDeliveredResponse>
         {
             FlyBird = newDocuments.Count > 0,
-            Memory = new FilesMemory { LastPollingTime = DateTime.UtcNow },
+            Memory = new DocumentMemory { TaskIds = documents.Select(x => x.TaskId).ToList() },
             Result = new ProjectDeliveredResponse
             {
                 Documents = newDocuments,

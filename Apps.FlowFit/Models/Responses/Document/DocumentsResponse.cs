@@ -1,3 +1,3 @@
 ﻿namespace Apps.FlowFit.Models.Responses.Document;
 
-public record DocumentsResponse<T>(IEnumerable<T> Documents);
+public record DocumentsResponse<T>(List<T> Documents);

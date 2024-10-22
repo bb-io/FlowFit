@@ -30,11 +30,13 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
             };
         }
         
-        var newDocuments = documents.Where(x => x.ModificationDate > request.Memory.LastPollingTime).ToList();
+        var newDocuments = documents
+            .Where(x => x.ModificationDate.ToUniversalTime() > request.Memory.LastPollingTime.ToUniversalTime()).ToList();
 
         await WebhookLogger.LogAsync(new
         {
             message = "Polling for new project documents",
+            request.Memory.LastPollingTime,
             allDocuments = documents,
             newDocuments
         });

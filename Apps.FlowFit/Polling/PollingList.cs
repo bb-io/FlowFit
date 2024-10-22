@@ -12,7 +12,7 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
 {
     [PollingEvent("On project documents delivered",
         Description = "Returns project documents that were delivered after the last polling time")]
-    public async Task<PollingEventResponse<FilesMemory, DocumentsResponse<DeliveredProjectDocumentResponse>>>
+    public async Task<PollingEventResponse<FilesMemory, ProjectDeliveredResponse>>
         OnProjectFilesDelivered(PollingEventRequest<FilesMemory> request,
             [PollingEventParameter] ProjectIdentifier projectIdentifier)
     {
@@ -22,7 +22,7 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
 
         if (request.Memory is null)
         {
-            return new PollingEventResponse<FilesMemory, DocumentsResponse<DeliveredProjectDocumentResponse>>
+            return new PollingEventResponse<FilesMemory, ProjectDeliveredResponse>
             {
                 FlyBird = false,
                 Memory = new FilesMemory { LastPollingTime = DateTime.UtcNow },
@@ -39,11 +39,15 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
             newDocuments
         });
 
-        return new PollingEventResponse<FilesMemory, DocumentsResponse<DeliveredProjectDocumentResponse>>
+        return new PollingEventResponse<FilesMemory, ProjectDeliveredResponse>
         {
             FlyBird = newDocuments.Count > 0,
             Memory = new FilesMemory { LastPollingTime = DateTime.UtcNow },
-            Result = new DocumentsResponse<DeliveredProjectDocumentResponse>(newDocuments)
+            Result = new ProjectDeliveredResponse
+            {
+                Documents = newDocuments,
+                ProjectId = projectIdentifier.ProjectId
+            }
         };
     }
 }

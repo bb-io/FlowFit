@@ -13,6 +13,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Http;
 using RestSharp;
+using FileWrapper = Apps.FlowFit.Models.FileWrapper;
 
 namespace Apps.FlowFit.Actions;
 
@@ -39,7 +40,7 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
         [ActionParameter] ProjectIdentifier projectIdentifier)
     {
         var files = await DownloadFiles(
-            $"/api/v1/ProjectDocuments/GetAllProjectDocuments?projectId={projectIdentifier.ProjectId}");
+            $"/api/v1/ProjectDocuments/GetAllProjectDocuments?projectId={projectIdentifier.ProjectId}", new());
         return new(files);
     }
 
@@ -48,7 +49,7 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
         [ActionParameter] ProjectIdentifier projectIdentifier)
     {
         var files = await DownloadFiles(
-            $"/api/v1/ProjectDocuments/ReferenceDocuments?projectId={projectIdentifier.ProjectId}");
+            $"/api/v1/ProjectDocuments/ReferenceDocuments?projectId={projectIdentifier.ProjectId}", new());
         return new(files);
     }
     
@@ -57,6 +58,7 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
                                                             "to download only documents that have not been delivered yet.")]
     public async Task<FilesWrapper> DownloadProjectDeliverableDocuments(
         [ActionParameter] ProjectIdentifier projectIdentifier,
+        [ActionParameter] TaskOptionalIdentifier taskOptionalIdentifier,
         [ActionParameter] [Display("Only undelivered documents")] bool? onlyUndelivered)
     {
         IEnumerable<FileReference> files;
@@ -66,14 +68,41 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
             var request =
                 new FlowFitRequest($"/api/v1/ProjectDocuments/{projectIdentifier.ProjectId}/DeliverableDocuments");
             var response = await Client.ExecuteWithErrorHandling<DeliverableDocumentsWrapper>(request);
+
+            if (taskOptionalIdentifier.TaskId != null)
+            {
+                response.DeliverableDocuments = response.DeliverableDocuments
+                    .Where(x => x.TaskId == taskOptionalIdentifier.TaskId).ToList();
+            }
+            
             files = await Task.WhenAll(
                 response.DeliverableDocuments.Select(async document => await GetFileReference(document)));
         }
         else
             files = await DownloadFiles(
-                $"/api/v1/ProjectDocuments/{projectIdentifier.ProjectId}/AllDeliverableDocuments");
+                $"/api/v1/ProjectDocuments/{projectIdentifier.ProjectId}/AllDeliverableDocuments", taskOptionalIdentifier);
 
         return new(files);
+    }
+    
+    [Action("Download deliverable document", Description = "Download a project deliverable document specified by the project and task identifiers.")]
+    public async Task<FileWrapper> DownloadProjectDeliverableDocument(
+        [ActionParameter] ProjectIdentifier projectIdentifier,
+        [ActionParameter] TaskIdentifier taskIdentifier)
+    {
+        var request = new FlowFitRequest($"/api/v1/ProjectDocuments/{projectIdentifier.ProjectId}/AllDeliverableDocuments");
+        var response = await Client.ExecuteWithErrorHandling<List<BaseProjectDocumentDto>>(request);
+        var document = response.FirstOrDefault(x => x.TaskId == taskIdentifier.TaskId);
+        
+        if (document == null)
+        {
+            throw new Exception($"No deliverable document found for project {projectIdentifier.ProjectId} and task {taskIdentifier.TaskId}");
+        }
+
+        return new()
+        {
+            File = await GetFileReference(document)
+        };
     }
     
     [Action("Upload source document", Description = "Upload a source document to the specified project.")]
@@ -106,10 +135,15 @@ public class ProjectDocumentActions(InvocationContext invocationContext, IFileMa
     
     #region Utils
 
-    private async Task<IEnumerable<FileReference>> DownloadFiles(string endpoint)
+    private async Task<IEnumerable<FileReference>> DownloadFiles(string endpoint, TaskOptionalIdentifier taskOptionalIdentifier)
     {
         var request = new FlowFitRequest(endpoint);
         var response = await Client.ExecuteWithErrorHandling<IEnumerable<BaseProjectDocumentDto>>(request);
+        if (taskOptionalIdentifier.TaskId != null)
+        {
+            response = response.Where(x => x.TaskId == taskOptionalIdentifier.TaskId);
+        }
+        
         var files = await Task.WhenAll(response.Select(async document => await GetFileReference(document)));
         return files;
     }

@@ -36,16 +36,20 @@ public class PollingList(InvocationContext invocationContext) : FlowFitInvocable
             };
         }
         
+        var previousStatuses = request.Memory.Entities.ToDictionary(e => e.ProjectId, e => e.Status);
+
         var newProjects = projects
-            .Where(x => request.Memory.Entities.Any(y => y.ProjectId == x.Id && y.Status != x.Status.Id))
+            .Where(project =>
+                previousStatuses.TryGetValue(project.Id, out var oldStatus) && oldStatus != project.Status.Id &&
+                project.Status.Id == statusRequest.StatusId &&
+                (projectIdentifier.ProjectId == null || project.Id == projectIdentifier.ProjectId))
             .ToList();
-        
-        newProjects = newProjects.Where(x => x.Status.Id == statusRequest.StatusId).ToList();
-        
-        if(projectIdentifier.ProjectId != null)
+
+        request.Memory.Entities = projects.Select(x => new ProjectMemoryEntity
         {
-            newProjects = newProjects.Where(x => x.Id == projectIdentifier.ProjectId).ToList();
-        }
+            ProjectId = x.Id,
+            Status = x.Status.Id
+        }).ToList();
         
         return new PollingEventResponse<ProjectStatusMemory, ProjectsResponse>
         {

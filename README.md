@@ -47,6 +47,7 @@ Flowfit is a translation management system that optimizes task assignment, facil
 ## Events
 
 - **On project documents delivered** returns project documents that were delivered after the last polling time (polling based event).
+- **On projects status changed** returns projects that have changed status after the last polling time (polling based event).
 
 ## Missing features
 

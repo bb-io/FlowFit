@@ -8,5 +8,5 @@ public class ProjectStatusRequest
 {
     [Display("Status ID")]
     [DataSource(typeof(ProjectStatusDataSourceHandler))]
-    public string? StatusId { get; set; }
+    public string StatusId { get; set; } = default!;
 }
